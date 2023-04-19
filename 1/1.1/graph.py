@@ -60,8 +60,6 @@ romania = Graph( ['Or', 'Ne', 'Ze', 'Ia', 'Ar', 'Si', 'Fa',
    ('Bu', 'Ur', 85), ('Ur', 'Hi', 98),
    ('Hi', 'Ef', 86)
 ] )
-
-
 class Queue:
    
    def __init__(self, n):
@@ -70,77 +68,64 @@ class Queue:
       self.fifo = [] 
       self.prio = []
 
-   def dequeue(self, fifo, lifo, prio):
-      if len(self.fifo) != 0:
+   def pop(self, fifo, lifo, prio):
+      emptyQueue = self.empty()
+      if not emptyQueue["fifo"]:
          if fifo != 0:
+            fifoNode = self.fifo[0]
             del self.fifo[0]
-      if len(self.lifo) != 0:
+            return fifoNode
+      if not emptyQueue["lifo"]:
          if lifo != 0:
+            lifoNode = self.lifo[-1]
             del self.lifo[-1]
-      if len(self.prio) != 0:
+            return lifoNode
+      if not emptyQueue["prio"]:
          if prio != 0:
+            prioNode = self.prio[-1]
             del self.prio[-1]
-   
-   def enqueue(self, fifo, lifo, prio, value = 0):
-      fullQueue = self.full()
-      
+            return prioNode
+
+   def insert(self, fifo, lifo, prio, node):
+      emptyQueue = self.empty()
+
       if fifo != 0:
-         if fullQueue["fifo"] == True: #array voll
-            self.fifo.append(value)
-            self.dequeue(1,0,0)
+         if emptyQueue["fifo"] == False and len(self.fifo) == self.arrSize: #array voll
+            self.fifo.append(node)
+            self.pop(1,0,0)
          else: # array leer
-            self.fifo.append(value)
-       
+            self.fifo.append(node)
       
       if lifo != 0:
-         if fullQueue["lifo"] == True: # array voll
-            self.lifo.append(value)
-            self.dequeue(0,1,0)
+         if emptyQueue["lifo"] == False and len(self.lifo) == self.arrSize: # array voll
+            self.lifo.append(node)
+            self.pop(0,1,0)
          else:
-            self.lifo.append(value)
+            self.lifo.append(node)
       
       if prio != 0:
-         if fullQueue['prio'] == True: # array voll
+         if emptyQueue['prio'] == False and len(self.prio) == self.arrSize: # array voll
             j = len(self.prio) - 1
             while j >= 0:
                self.prio[j-1] = self.prio[j]
                j -= 1
-            self.dequeue(0,0,1)
-            self.prio.insert(0,value)
+            self.pop(0,0,1)
+            self.prio.insert(0,node)
          else:
-            self.prio.insert(0,value)
+            self.prio.insert(0,node)
       
-   def full(self):
+   def empty(self):
       fifoFull = False
       lifoFull = False
       prioFull = False
 
-      if len(self.fifo) == self.arrSize:
+      if len(self.fifo) == 0:
          fifoFull = True
-      if len(self.lifo) == self.arrSize:
+      if len(self.lifo) == 0:
          lifoFull = True
-      if len(self.prio) == self.arrSize:
+      if len(self.prio) == 0:
          prioFull = True
 
       return {"fifo":fifoFull,"lifo": lifoFull,"prio": prioFull}
 
-
-"""
-queue = Queue(10)
-queue.enqueue(1,1,1,2)
-queue.enqueue(1,1,1,3)
-queue.enqueue(1,1,1,4)
-queue.enqueue(1,1,1,5)
-
-
-queue.dequeue(1,1,1)
-
-
-print("fifo")
-print(queue.fifo)
-print("lifo")
-print(queue.lifo)
-print("prio")
-print( queue.prio)
-#print(queue.full())
-"""
+# Folie 12
