@@ -59,73 +59,182 @@ romania = Graph( ['Or', 'Ne', 'Ze', 'Ia', 'Ar', 'Si', 'Fa',
    ('Pi', 'Bu', 101), ('Bu', 'Gi', 90),
    ('Bu', 'Ur', 85), ('Ur', 'Hi', 98),
    ('Hi', 'Ef', 86)
-] )
+])
+
 class Queue:
+    procedure = 'lifo'
+    structeredData = list()
+
+    def __init__(self, procedure):
+        if (procedure in {'lifo', 'fifo', 'prio'}):
+            self.procedure = procedure
+            self.structeredData = list()
+        else:
+            print("Invalid Constructor Parameter")
+
+    def push(self, data):
+      if (self.procedure == 'lifo'):
+         self.structeredData.insert(0, data)
+      elif (self.procedure == 'fifo'):
+         self.structeredData.append(data)
+      elif (self.procedure == 'prio'):
+         total_cost, node = data
+         index = 0
+         while (index < len(self.structeredData) and int(self.structeredData[index][0]) < total_cost):
+               index += 1
+         if (index >= len(self.structeredData)):
+               self.structeredData.append((total_cost, node))
+         else:
+               self.structeredData.insert(index, (total_cost, node))
+
+    def pop(self):
+        if (not self.structeredData):  # empty Queue
+            print('Queue is empty!!')
+            return None
+        else:
+            return self.structeredData.pop(0)
+
+    def contains(self, value):
+        for element in self.structeredData:
+            if(value == element):
+                return True
+        return False
+    
+    def empty(self):
+        return (not self.structeredData)
+
+    def contains(self, val):
+        return val in self.structeredData
+
+    def print(self):
+        for element in self.structeredData:
+            print(element, end=' , ')
+        print('')
+
+
+#nachbarn aus der adjazenzmatrix entnehmen
+def neighbors(node_name):
+   map = []
+   for node in romania.nodes:
+      if(node.name == node_name):
+         for edges in node.edges:
+            map.append({
+                  "from": edges.start.name,
+                  "to": edges.end.name,
+                  "cost": edges.value
+                })
+          
+   return map
+
+"""
+liste = adj_matrix('Or')
+for edge in liste:
+        print(edge['cost'])
+"""
+# minimum total cost - takes the cheapest path
+
+def ucs(start_node,end_node): 
+    visited = set()
+    queue = Queue('prio')
+    start = getNode(start_node,romania.nodes)
+    queue.push((0,start))
+    paths = {start: [start]}
+    while not queue.empty():
+        r = queue.pop()
+        cost = int(r[0])
+        node = r[1]
+
+        if node not in visited:
+            visited.add(node)
+
+            if node.name == end_node:
+                return paths[node]
+            n = neighbors(node.name)
+            for neigh in n:
+                toNode = getNode(neigh['to'], romania.nodes)
+                if toNode not in visited:
+                    total_cost = cost + int(neigh['cost'])
+                    if toNode not in paths:
+                        paths[toNode] = paths[node] + [toNode]
+                    queue.push((total_cost,toNode))
    
-   def __init__(self, n):
-      self.arrSize = n
-      self.lifo = [] #array erstellen
-      self.fifo = [] 
-      self.prio = []
+    
 
-   def pop(self, fifo, lifo, prio):
-      emptyQueue = self.empty()
-      if not emptyQueue["fifo"]:
-         if fifo != 0:
-            fifoNode = self.fifo[0]
-            del self.fifo[0]
-            return fifoNode
-      if not emptyQueue["lifo"]:
-         if lifo != 0:
-            lifoNode = self.lifo[-1]
-            del self.lifo[-1]
-            return lifoNode
-      if not emptyQueue["prio"]:
-         if prio != 0:
-            prioNode = self.prio[-1]
-            del self.prio[-1]
-            return prioNode
+def bfs(start_node, end_node):
+    visited = []
+    queue = Queue('fifo')
+    start = getNode(start_node,romania.nodes)
+    end = getNode(end_node,romania.nodes)
+    queue.push(start)
+    while not queue.empty():
+        node = queue.pop()
+        if node == end:
+            visited.append(node)
+            break
+        if node not in visited:
+            visited.append(node)
+           #print(node.name)
+            n = neighbors(node.name)
+            for neighbour in n:
+                neighbor_node = getNode(neighbour['to'], romania.nodes)
+                if neighbor_node not in visited:
+                    neighbor_node.parent = node
+                    queue.push(neighbor_node)
+    if end not in visited:
+        print("Ziel nicht enthalten!")
+        return []
+    path = []
+    node = end
+    while node != start:
+        path.insert(0, node)
+        node = node.parent
+    path.insert(0, start)
+    return path            
 
-   def insert(self, fifo, lifo, prio, node):
-      emptyQueue = self.empty()
 
-      if fifo != 0:
-         if emptyQueue["fifo"] == False and len(self.fifo) == self.arrSize: #array voll
-            self.fifo.append(node)
-            self.pop(1,0,0)
-         else: # array leer
-            self.fifo.append(node)
-      
-      if lifo != 0:
-         if emptyQueue["lifo"] == False and len(self.lifo) == self.arrSize: # array voll
-            self.lifo.append(node)
-            self.pop(0,1,0)
-         else:
-            self.lifo.append(node)
-      
-      if prio != 0:
-         if emptyQueue['prio'] == False and len(self.prio) == self.arrSize: # array voll
-            j = len(self.prio) - 1
-            while j >= 0:
-               self.prio[j-1] = self.prio[j]
-               j -= 1
-            self.pop(0,0,1)
-            self.prio.insert(0,node)
-         else:
-            self.prio.insert(0,node)
-      
-   def empty(self):
-      fifoFull = False
-      lifoFull = False
-      prioFull = False
+def dfs(start_node, end_node, path=None, visited=None):
+    if path is None:
+        path = []
+    if visited is None:
+        visited = set()
 
-      if len(self.fifo) == 0:
-         fifoFull = True
-      if len(self.lifo) == 0:
-         lifoFull = True
-      if len(self.prio) == 0:
-         prioFull = True
+    start = getNode(start_node, romania.nodes)
+    
+    path.append(start)
+    visited.add(start)
 
-      return {"fifo":fifoFull,"lifo": lifoFull,"prio": prioFull}
+    if start.name == end_node:
+ 
+        return path
+    n = neighbors(start.name)
+    for neigh in n:
+        new_neigh = getNode(neigh['to'],romania.nodes)
+        if new_neigh not in visited:
+            result = dfs(neigh['to'], end_node, path, visited)
+            if result is not None:
+                return result
+    path.pop()
+    return path
 
-# Folie 12
+
+
+
+
+"""
+bfs_test = bfs("Bu","Ti")
+for t in bfs_test:
+    print(t.name)
+
+dfs_test = dfs("Bu", "Ti")
+
+for t in dfs_test:
+    print(t.name)
+"""
+
+"""
+ucs_test = ucs("Bu", "Ti")
+print(ucs_test)
+for t in ucs_test:
+    print(t.name)
+
+"""
