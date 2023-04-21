@@ -158,7 +158,7 @@ def ucs(start_node,end_node):
                         paths[toNode] = paths[node] + [toNode]
                     queue.push((total_cost,toNode))
    
-    
+
 
 def bfs(start_node, end_node):
     visited = []
