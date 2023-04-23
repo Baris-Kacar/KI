@@ -1,59 +1,169 @@
 import pygame
 import math
+import numpy as np
 
-     # Define some colors
-     BLACK = (0, 0, 0)
-     WHITE = (255, 255, 255)
-     BLUE = (0, 0, 255)
-     GREEN = (0, 255, 0)
-     RED = (255, 0, 0)
+# Define some colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+GREY = (220,220,220)
 
-     WIDTH = 22
-     HEIGHT = 22
-     MARGIN = 3
+WIDTH = 50
+HEIGHT = 50
+MARGIN = 3
+
+# Initialize your classes etc. here
+
+pygame.init()
+
+size = (1000, 1000)
+screen = pygame.display.set_mode(size)
+
+pygame.display.set_caption("My Game")
+
+done = False
+
+clock = pygame.time.Clock()
+
+#My definitions
+start_node = None
+end_node = None
 
 
-     # ---
-     # Initialize your classes etc.here
-     # ---
 
-     pygame.init()
 
-     size = (500, 500)
-     screen = pygame.display.set_mode(size)
+grid = [[0 for y in range(HEIGHT)] for x in range(WIDTH)]
 
-     pygame.display.set_caption("My Game")
+def drawGrid():
+    global start_node
+    global end_node
+    for x in range(WIDTH):
+        for y in range(HEIGHT):
+            rect_x, rect_y  = x*(WIDTH + MARGIN) + MARGIN,y*(HEIGHT + MARGIN)+ MARGIN
+            rect = pygame.Rect(rect_x,rect_y,WIDTH,HEIGHT)
+            if grid[x][y] == 1: # BLACK ist obstacle, LEFT click
+                    pygame.draw.rect(screen, BLACK, rect)
+            elif grid[x][y] == 0:
+                    pygame.draw.rect(screen, WHITE, rect)
+            elif grid[x][y] == 3: # scroll up RED is start
+                    pygame.draw.rect(screen, RED, rect)
+                    start_node = (rect_x,rect_y)
+            elif grid[x][y] == 4: # scroll down BLUE is GOAL
+                    pygame.draw.rect(screen,BLUE,rect)
+                    end_node = (rect_x, rect_y)
+def buttonDefinition():
+     global start_node
+     global end_node
+     if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0] // (WIDTH + MARGIN)
+                    y = pos[1] // (HEIGHT + MARGIN)
 
-     done = False
+                    if grid[x][y] == 0:
+                        grid[x][y] = 1
+                    else:
+                        grid[x][y] = 0
+            if event.button == 5 : # start
+                pos = pygame.mouse.get_pos()
+                x = pos[0] // (WIDTH + MARGIN)
+                y = pos[1] // (HEIGHT + MARGIN)
 
-     clock = pygame.time.Clock()
+                if grid[x][y] == 0:
+                    grid[x][y] = 3
+                    start_node = (x*(WIDTH + MARGIN) + MARGIN, y* (HEIGHT + MARGIN) + MARGIN)
+                else:
+                    grid[x][y] = 0
+            if event.button == 4: # goal
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0] // (WIDTH + MARGIN)
+                    y = pos[1] // (HEIGHT + MARGIN)
 
-     while not done:
-     for event in pygame.event.get():
-     if event.type == pygame.QUIT:
-              done = True
+                    if grid[x][y] == 0:
+                        grid[x][y] = 4
+                        end_node = (x*(WIDTH + MARGIN) + MARGIN, y* (HEIGHT + MARGIN) + MARGIN)
+                    else:
+                        grid[x][y] = 0
+                    
 
+     elif event.type == pygame.MOUSEMOTION and event.buttons[0] == 1:
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0] // (WIDTH + MARGIN)
+                    y = pos[1] // (HEIGHT + MARGIN)
+
+                    if grid[x][y] == 0:
+                        grid[x][y] = 1
+def neighbors(pos):
+    if pos != None:
+        x,y = pos  
+        xMinus1 = (x-1,y)
+        xPlus1 = (x+1,y)
+        yMinus1 = (x,y-1)
+        yPlus1 = (x,y+1)
+        nodeMinusX = Node(xMinus1)
+        nodePlusX = Node(xPlus1)
+        nodeMinusY = Node(yMinus1)
+        nodePlusX = Node(yPlus1)
+        # alle nachbarn vom node werden als node zurückgegeben mit den koordinaten
+        return [nodeMinusX,nodePlusX,nodeMinusY,nodePlusX]
+def heuristic(a,b):
+      return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+class Node:
+      x = None
+      y = None
+      parent = None
+      def __init__(self, coordinates):
+            if coordinates != None:
+                self.x ,self.y = coordinates
+            self.parent = None
+
+
+
+while not done:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            done = True
+        # The code here is called once per clock tick
+        # Let your algorithm loop here
+        buttonDefinition()
+
+        screen.fill(GREY)
+              
+
+        # The screen is empty here
+        # Put your 'drawing' code here
+        #
+        # RECTANGEL EXAMPLE
+        #
+        # The third Parameter defines the rectangles positioning etc: [y-pos,x-pos,width,height]
+        # pygame.draw.rect(screen,color,[(MARGIN + WIDTH) * y + MARGIN,
+        #                        (MARGIN + HEIGHT) * x + MARGIN,WIDTH,HEIGHT])
         # ---
-   # The code here ist called once per clock tick
-   # Let your algorithm loop here
-     # ---
+        
+        # Grid gezeichnet
+        drawGrid()
 
-             screen.fill(BLACK)
+       
+        
+        """
+        node = Node(start_node)
+        node2 = Node(end_node)
 
-             # ---
-             # The screen is empty here
-   # Put your 'drawing' code here
-             #
-             #   RECTANGEL EXAMPLE
-             #
-   #   The third Parameter defines the rectangles positioning etc: [y-pos,x-pos,width,height]
-   #   pygame.draw.rect(screen,color,[(MARGIN + WIDTH) * y + MARGIN,
-   #                        (MARGIN + HEIGHT) * x + MARGIN,WIDTH,HEIGHT])
-             # ---
+        if start_node != None:
+            test = neighbors(start_node)
+            print(str(node.x) +  "," + str(node.y))
+            for t in test:
+              print(str(t.x) + " HIER " + str(t.y))
+        """
 
 
-   pygame.display.flip()
+        pygame.display.flip()
 
-   clock.tick(60)
+        clock.tick(60)
 
 pygame.quit()
+
+
