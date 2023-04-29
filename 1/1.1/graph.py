@@ -220,21 +220,22 @@ def dfs(start_node, end_node, path=None, visited=None):
 
 
 
-"""
+
 bfs_test = bfs("Bu","Ti")
 for t in bfs_test:
-    print(t.name)
+    print("BFS " +t.name)
+print("\n")
 
 dfs_test = dfs("Bu", "Ti")
 
 for t in dfs_test:
-    print(t.name)
-"""
+    print( "DFS " + t.name)
 
-"""
+print("\n")
+
 ucs_test = ucs("Bu", "Ti")
-print(ucs_test)
-for t in ucs_test:
-    print(t.name)
 
-"""
+for t in ucs_test:
+    print("UCS " +t.name)
+
+
